@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/students/220110512/user-land-filesystem/fs/newfs
+CMAKE_SOURCE_DIR = /home/students/220110512/user-land-filesystem/fs/simplefs
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/students/220110512/user-land-filesystem/fs/newfs/build
+CMAKE_BINARY_DIR = /home/students/220110512/user-land-filesystem/fs/simplefs/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/students/220110512/user-land-filesystem/fs/newfs/build/CMakeFiles /home/students/220110512/user-land-filesystem/fs/newfs/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/students/220110512/user-land-filesystem/fs/simplefs/build/CMakeFiles /home/students/220110512/user-land-filesystem/fs/simplefs/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/students/220110512/user-land-filesystem/fs/newfs/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/students/220110512/user-land-filesystem/fs/simplefs/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -117,89 +117,89 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named newfs
+# Target rules for targets named sfs-fuse
 
 # Build rule for target.
-newfs: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 newfs
-.PHONY : newfs
+sfs-fuse: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sfs-fuse
+.PHONY : sfs-fuse
 
 # fast build rule for target.
-newfs/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/newfs.dir/build.make CMakeFiles/newfs.dir/build
-.PHONY : newfs/fast
+sfs-fuse/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sfs-fuse.dir/build.make CMakeFiles/sfs-fuse.dir/build
+.PHONY : sfs-fuse/fast
 
-src/newfs.o: src/newfs.c.o
-.PHONY : src/newfs.o
-
-# target to build an object file
-src/newfs.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/newfs.dir/build.make CMakeFiles/newfs.dir/src/newfs.c.o
-.PHONY : src/newfs.c.o
-
-src/newfs.i: src/newfs.c.i
-.PHONY : src/newfs.i
-
-# target to preprocess a source file
-src/newfs.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/newfs.dir/build.make CMakeFiles/newfs.dir/src/newfs.c.i
-.PHONY : src/newfs.c.i
-
-src/newfs.s: src/newfs.c.s
-.PHONY : src/newfs.s
-
-# target to generate assembly for a file
-src/newfs.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/newfs.dir/build.make CMakeFiles/newfs.dir/src/newfs.c.s
-.PHONY : src/newfs.c.s
-
-src/newfs_debug.o: src/newfs_debug.c.o
-.PHONY : src/newfs_debug.o
+src/sfs.o: src/sfs.c.o
+.PHONY : src/sfs.o
 
 # target to build an object file
-src/newfs_debug.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/newfs.dir/build.make CMakeFiles/newfs.dir/src/newfs_debug.c.o
-.PHONY : src/newfs_debug.c.o
+src/sfs.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sfs-fuse.dir/build.make CMakeFiles/sfs-fuse.dir/src/sfs.c.o
+.PHONY : src/sfs.c.o
 
-src/newfs_debug.i: src/newfs_debug.c.i
-.PHONY : src/newfs_debug.i
+src/sfs.i: src/sfs.c.i
+.PHONY : src/sfs.i
 
 # target to preprocess a source file
-src/newfs_debug.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/newfs.dir/build.make CMakeFiles/newfs.dir/src/newfs_debug.c.i
-.PHONY : src/newfs_debug.c.i
+src/sfs.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sfs-fuse.dir/build.make CMakeFiles/sfs-fuse.dir/src/sfs.c.i
+.PHONY : src/sfs.c.i
 
-src/newfs_debug.s: src/newfs_debug.c.s
-.PHONY : src/newfs_debug.s
+src/sfs.s: src/sfs.c.s
+.PHONY : src/sfs.s
 
 # target to generate assembly for a file
-src/newfs_debug.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/newfs.dir/build.make CMakeFiles/newfs.dir/src/newfs_debug.c.s
-.PHONY : src/newfs_debug.c.s
+src/sfs.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sfs-fuse.dir/build.make CMakeFiles/sfs-fuse.dir/src/sfs.c.s
+.PHONY : src/sfs.c.s
 
-src/newfs_util.o: src/newfs_util.c.o
-.PHONY : src/newfs_util.o
+src/sfs_debug.o: src/sfs_debug.c.o
+.PHONY : src/sfs_debug.o
 
 # target to build an object file
-src/newfs_util.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/newfs.dir/build.make CMakeFiles/newfs.dir/src/newfs_util.c.o
-.PHONY : src/newfs_util.c.o
+src/sfs_debug.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sfs-fuse.dir/build.make CMakeFiles/sfs-fuse.dir/src/sfs_debug.c.o
+.PHONY : src/sfs_debug.c.o
 
-src/newfs_util.i: src/newfs_util.c.i
-.PHONY : src/newfs_util.i
+src/sfs_debug.i: src/sfs_debug.c.i
+.PHONY : src/sfs_debug.i
 
 # target to preprocess a source file
-src/newfs_util.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/newfs.dir/build.make CMakeFiles/newfs.dir/src/newfs_util.c.i
-.PHONY : src/newfs_util.c.i
+src/sfs_debug.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sfs-fuse.dir/build.make CMakeFiles/sfs-fuse.dir/src/sfs_debug.c.i
+.PHONY : src/sfs_debug.c.i
 
-src/newfs_util.s: src/newfs_util.c.s
-.PHONY : src/newfs_util.s
+src/sfs_debug.s: src/sfs_debug.c.s
+.PHONY : src/sfs_debug.s
 
 # target to generate assembly for a file
-src/newfs_util.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/newfs.dir/build.make CMakeFiles/newfs.dir/src/newfs_util.c.s
-.PHONY : src/newfs_util.c.s
+src/sfs_debug.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sfs-fuse.dir/build.make CMakeFiles/sfs-fuse.dir/src/sfs_debug.c.s
+.PHONY : src/sfs_debug.c.s
+
+src/sfs_utils.o: src/sfs_utils.c.o
+.PHONY : src/sfs_utils.o
+
+# target to build an object file
+src/sfs_utils.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sfs-fuse.dir/build.make CMakeFiles/sfs-fuse.dir/src/sfs_utils.c.o
+.PHONY : src/sfs_utils.c.o
+
+src/sfs_utils.i: src/sfs_utils.c.i
+.PHONY : src/sfs_utils.i
+
+# target to preprocess a source file
+src/sfs_utils.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sfs-fuse.dir/build.make CMakeFiles/sfs-fuse.dir/src/sfs_utils.c.i
+.PHONY : src/sfs_utils.c.i
+
+src/sfs_utils.s: src/sfs_utils.c.s
+.PHONY : src/sfs_utils.s
+
+# target to generate assembly for a file
+src/sfs_utils.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sfs-fuse.dir/build.make CMakeFiles/sfs-fuse.dir/src/sfs_utils.c.s
+.PHONY : src/sfs_utils.c.s
 
 # Help Target
 help:
@@ -209,16 +209,16 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... newfs"
-	@echo "... src/newfs.o"
-	@echo "... src/newfs.i"
-	@echo "... src/newfs.s"
-	@echo "... src/newfs_debug.o"
-	@echo "... src/newfs_debug.i"
-	@echo "... src/newfs_debug.s"
-	@echo "... src/newfs_util.o"
-	@echo "... src/newfs_util.i"
-	@echo "... src/newfs_util.s"
+	@echo "... sfs-fuse"
+	@echo "... src/sfs.o"
+	@echo "... src/sfs.i"
+	@echo "... src/sfs.s"
+	@echo "... src/sfs_debug.o"
+	@echo "... src/sfs_debug.i"
+	@echo "... src/sfs_debug.s"
+	@echo "... src/sfs_utils.o"
+	@echo "... src/sfs_utils.i"
+	@echo "... src/sfs_utils.s"
 .PHONY : help
 
 

@@ -54,16 +54,16 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/students/220110512/user-land-filesystem/fs/newfs
+CMAKE_SOURCE_DIR = /home/students/220110512/user-land-filesystem/fs/simplefs
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/students/220110512/user-land-filesystem/fs/newfs/build
+CMAKE_BINARY_DIR = /home/students/220110512/user-land-filesystem/fs/simplefs/build
 
 #=============================================================================
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/newfs.dir/all
+all: CMakeFiles/sfs-fuse.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -71,34 +71,34 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/newfs.dir/clean
+clean: CMakeFiles/sfs-fuse.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/newfs.dir
+# Target rules for target CMakeFiles/sfs-fuse.dir
 
 # All Build rule for target.
-CMakeFiles/newfs.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/newfs.dir/build.make CMakeFiles/newfs.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/newfs.dir/build.make CMakeFiles/newfs.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/students/220110512/user-land-filesystem/fs/newfs/build/CMakeFiles --progress-num=1,2,3,4 "Built target newfs"
-.PHONY : CMakeFiles/newfs.dir/all
+CMakeFiles/sfs-fuse.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sfs-fuse.dir/build.make CMakeFiles/sfs-fuse.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sfs-fuse.dir/build.make CMakeFiles/sfs-fuse.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/students/220110512/user-land-filesystem/fs/simplefs/build/CMakeFiles --progress-num=1,2,3,4 "Built target sfs-fuse"
+.PHONY : CMakeFiles/sfs-fuse.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/newfs.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/students/220110512/user-land-filesystem/fs/newfs/build/CMakeFiles 4
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/newfs.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/students/220110512/user-land-filesystem/fs/newfs/build/CMakeFiles 0
-.PHONY : CMakeFiles/newfs.dir/rule
+CMakeFiles/sfs-fuse.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/students/220110512/user-land-filesystem/fs/simplefs/build/CMakeFiles 4
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/sfs-fuse.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/students/220110512/user-land-filesystem/fs/simplefs/build/CMakeFiles 0
+.PHONY : CMakeFiles/sfs-fuse.dir/rule
 
 # Convenience name for target.
-newfs: CMakeFiles/newfs.dir/rule
-.PHONY : newfs
+sfs-fuse: CMakeFiles/sfs-fuse.dir/rule
+.PHONY : sfs-fuse
 
 # clean rule for target.
-CMakeFiles/newfs.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/newfs.dir/build.make CMakeFiles/newfs.dir/clean
-.PHONY : CMakeFiles/newfs.dir/clean
+CMakeFiles/sfs-fuse.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sfs-fuse.dir/build.make CMakeFiles/sfs-fuse.dir/clean
+.PHONY : CMakeFiles/sfs-fuse.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

@@ -1,22 +1,33 @@
 #define _XOPEN_SOURCE 700
-
-#include "newfs.h"
+#include "../include/newfs.h"
+#include <stdio.h>
+#include <string.h>
+#include <fuse.h>
+#include "../include/ddriver.h"
+#include <linux/fs.h>
+#include <pwd.h>
 
 /******************************************************************************
-* SECTION: 宏定义
-*******************************************************************************/
-#define OPTION(t, p)        { t, offsetof(struct custom_options, p), 1 }
-
+ * SECTION: 宏定义
+ *******************************************************************************/
+#define DEVICE_NAME "ddriver"
+#define OPTION(t, p) {t, offsetof(struct custom_options, p), 1}
 /******************************************************************************
-* SECTION: 全局变量
-*******************************************************************************/
-static const struct fuse_opt option_spec[] = {		/* 用于FUSE文件系统解析参数 */
+ * SECTION: global region
+ *******************************************************************************/
+struct newfs_super newfs_super;
+struct custom_options newfs_options;
+/******************************************************************************
+ * SECTION: 全局变量
+ *******************************************************************************/
+static const struct fuse_opt option_spec[] = {
 	OPTION("--device=%s", device),
-	FUSE_OPT_END
-};
+	OPTION("-h", show_help),
+	OPTION("--help", show_help),
+	FUSE_OPT_END};
 
-struct custom_options newfs_options;			 /* 全局选项 */
-struct newfs_super super; 
+struct custom_options newfs_options; /* 全局选项 */
+struct newfs_super super;
 /******************************************************************************
 * SECTION: FUSE操作定义
 *******************************************************************************/
@@ -27,17 +38,17 @@ static struct fuse_operations operations = {
 	.getattr = newfs_getattr,				 /* 获取文件属性，类似stat，必须完成 */
 	.readdir = newfs_readdir,				 /* 填充dentrys */
 	.mknod = newfs_mknod,					 /* 创建文件，touch相关 */
-	.write = NULL,								  	 /* 写入文件 */
-	.read = NULL,								  	 /* 读文件 */
+	.write = newfs_write,								  	 /* 写入文件 */
+	.read = newfs_read,								  	 /* 读文件 */
 	.utimens = newfs_utimens,				 /* 修改时间，忽略，避免touch报错 */
-	.truncate = NULL,						  		 /* 改变文件大小 */
+	.truncate = newfs_truncate,						  		 /* 改变文件大小 */
 	.unlink = NULL,							  		 /* 删除文件 */
 	.rmdir	= NULL,							  		 /* 删除目录， rm -r */
 	.rename = NULL,							  		 /* 重命名，mv */
 
-	.open = NULL,							
-	.opendir = NULL,
-	.access = NULL
+	.open = newfs_open,							
+	.opendir = newfs_opendir,
+	.access = newfs_access
 };
 /******************************************************************************
 * SECTION: 必做函数实现
@@ -50,10 +61,11 @@ static struct fuse_operations operations = {
  */
 void* newfs_init(struct fuse_conn_info * conn_info) {
 	/* TODO: 在这里进行挂载 */
-
-	/* 下面是一个控制设备的示例 */
-	super.fd = ddriver_open(newfs_options.device);
-	
+	if (newfs_mount(newfs_options) != NFS_ERROR_NONE) {
+        NFS_DBG("[%s] mount error\n", __func__);
+		fuse_exit(fuse_get_context()->fuse);
+		return NULL;
+	} 
 	return NULL;
 }
 
@@ -65,23 +77,49 @@ void* newfs_init(struct fuse_conn_info * conn_info) {
  */
 void newfs_destroy(void* p) {
 	/* TODO: 在这里进行卸载 */
-	
-	ddriver_close(super.fd);
-
+	if (newfs_umount() != NFS_ERROR_NONE) {
+		NFS_DBG("[%s] unmount error\n", __func__);
+		fuse_exit(fuse_get_context()->fuse);
+		return;
+	}
 	return;
 }
-
 /**
  * @brief 创建目录
- * 
+ *
  * @param path 相对于挂载点的路径
  * @param mode 创建模式（只读？只写？），可忽略
- * @return int 0成功，否则返回对应错误号
+ * @return int 0成功，否则失败
  */
-int newfs_mkdir(const char* path, mode_t mode) {
+int newfs_mkdir(const char *path, mode_t mode)
+{
 	/* TODO: 解析路径，创建目录 */
-	return 0;
+	(void)mode;
+	boolean is_find, is_root;
+	char *fname;
+	struct newfs_dentry *last_dentry = newfs_lookup(path, &is_find, &is_root);
+	struct newfs_dentry *dentry;
+	struct newfs_inode *inode;
+
+	if (is_find)
+	{
+		return -NFS_ERROR_EXISTS;
+	}
+
+	if (NFS_IS_REG(last_dentry->inode))
+	{
+		return -NFS_ERROR_UNSUPPORTED;
+	}
+
+	fname = newfs_get_fname(path);
+	dentry = new_dentry(fname, NFS_DIR);
+	dentry->parent = last_dentry;
+	inode = newfs_alloc_inode(dentry);
+	newfs_alloc_dentry(last_dentry->inode, dentry);
+
+	return NFS_ERROR_NONE;
 }
+
 
 /**
  * @brief 获取文件或目录的属性，该函数非常重要
@@ -92,8 +130,36 @@ int newfs_mkdir(const char* path, mode_t mode) {
  */
 int newfs_getattr(const char* path, struct stat * newfs_stat) {
 	/* TODO: 解析路径，获取Inode，填充newfs_stat，可参考/fs/simplefs/sfs.c的sfs_getattr()函数实现 */
-	return 0;
+	boolean	is_find, is_root;
+	struct newfs_dentry* dentry = newfs_lookup(path, &is_find, &is_root);
+	if (is_find == FALSE) {
+		return -NFS_ERROR_NOTFOUND;
+	}
+
+	if (NFS_IS_DIR(dentry->inode)) {
+		newfs_stat->st_mode = S_IFDIR | NFS_DEFAULT_PERM;
+		newfs_stat->st_size = dentry->inode->dir_cnt * sizeof(struct newfs_dentry_d);
+	}
+	else if (NFS_IS_REG(dentry->inode)) {
+		newfs_stat->st_mode = S_IFREG | NFS_DEFAULT_PERM;
+		newfs_stat->st_size = NFS_BLKS_SZ(dentry->inode->size);
+	}
+
+	newfs_stat->st_nlink = 1;
+	newfs_stat->st_uid 	 = getuid();
+	newfs_stat->st_gid 	 = getgid();
+	newfs_stat->st_atime   = time(NULL);
+	newfs_stat->st_mtime   = time(NULL);
+	newfs_stat->st_blksize = NFS_LOGIC_SZ();
+
+	if (is_root) {
+		newfs_stat->st_size	= newfs_super.sz_usage; 
+		newfs_stat->st_blocks = NFS_DISK_SZ() / NFS_LOGIC_SZ();//!!!!NFS_LOGIC_SZ
+		newfs_stat->st_nlink  = 2;		/* !特殊，根目录link数为2 */
+	}
+	return NFS_ERROR_NONE;
 }
+
 
 /**
  * @brief 遍历目录项，填充至buf，并交给FUSE输出
@@ -116,7 +182,21 @@ int newfs_getattr(const char* path, struct stat * newfs_stat) {
 int newfs_readdir(const char * path, void * buf, fuse_fill_dir_t filler, off_t offset,
 			    		 struct fuse_file_info * fi) {
     /* TODO: 解析路径，获取目录的Inode，并读取目录项，利用filler填充到buf，可参考/fs/simplefs/sfs.c的sfs_readdir()函数实现 */
-    return 0;
+    boolean	is_find, is_root;
+	int		cur_dir = offset;
+
+	struct newfs_dentry* dentry = newfs_lookup(path, &is_find, &is_root);
+	struct newfs_dentry* sub_dentry;
+	struct newfs_inode* inode;
+	if (is_find) {
+		inode = dentry->inode;
+		sub_dentry = newfs_get_dentry(inode, cur_dir);
+		if (sub_dentry) {
+			filler(buf, sub_dentry->name, NULL, ++offset);
+		}
+		return NFS_ERROR_NONE;
+	}
+	return -NFS_ERROR_NOTFOUND;
 }
 
 /**
@@ -129,7 +209,33 @@ int newfs_readdir(const char * path, void * buf, fuse_fill_dir_t filler, off_t o
  */
 int newfs_mknod(const char* path, mode_t mode, dev_t dev) {
 	/* TODO: 解析路径，并创建相应的文件 */
-	return 0;
+	boolean	is_find, is_root;
+	
+	struct newfs_dentry* last_dentry = newfs_lookup(path, &is_find, &is_root);
+	struct newfs_dentry* dentry;
+	struct newfs_inode* inode;
+	char* fname;
+	
+	if (is_find == TRUE) {
+		return -NFS_ERROR_EXISTS;
+	}
+
+	fname = newfs_get_fname(path);
+	
+	if (S_ISREG(mode)) {
+		dentry = new_dentry(fname, NFS_REG_FILE);
+	}
+	else if (S_ISDIR(mode)) {
+		dentry = new_dentry(fname, NFS_DIR);
+	}
+	else {
+		dentry = new_dentry(fname, NFS_REG_FILE);
+	}
+	dentry->parent = last_dentry;
+	inode = newfs_alloc_inode(dentry);
+	newfs_alloc_dentry(last_dentry->inode, dentry);
+
+	return NFS_ERROR_NONE;
 }
 
 /**
@@ -148,7 +254,7 @@ int newfs_utimens(const char* path, const struct timespec tv[2]) {
 *******************************************************************************/
 /**
  * @brief 写入文件
- * 
+ *
  * @param path 相对于挂载点的路径
  * @param buf 写入的内容
  * @param size 写入的字节数
@@ -156,15 +262,40 @@ int newfs_utimens(const char* path, const struct timespec tv[2]) {
  * @param fi 可忽略
  * @return int 写入大小
  */
-int newfs_write(const char* path, const char* buf, size_t size, off_t offset,
-		        struct fuse_file_info* fi) {
+int newfs_write(const char *path, const char *buf, size_t size, off_t offset,
+				struct fuse_file_info *fi)
+{
 	/* 选做 */
+	boolean is_find, is_root;
+	struct newfs_dentry *dentry = newfs_lookup(path, &is_find, &is_root);
+	struct newfs_inode *inode;
+
+	if (is_find == FALSE)
+	{
+		return -NFS_ERROR_NOTFOUND;
+	}
+
+	inode = dentry->inode;
+
+	if (NFS_IS_DIR(inode))
+	{
+		return -NFS_ERROR_ISDIR;
+	}
+
+	if (NFS_BLKS_SZ(inode->size) < offset)
+	{
+		return -NFS_ERROR_SEEK;
+	}
+
+	newfs_write_file(inode, buf, size, offset);
+
 	return size;
 }
 
+
 /**
  * @brief 读取文件
- * 
+ *
  * @param path 相对于挂载点的路径
  * @param buf 读取的内容
  * @param size 读取的字节数
@@ -172,10 +303,33 @@ int newfs_write(const char* path, const char* buf, size_t size, off_t offset,
  * @param fi 可忽略
  * @return int 读取大小
  */
-int newfs_read(const char* path, char* buf, size_t size, off_t offset,
-		       struct fuse_file_info* fi) {
+int newfs_read(const char *path, char *buf, size_t size, off_t offset,
+			   struct fuse_file_info *fi)
+{
 	/* 选做 */
-	return size;			   
+	boolean is_find, is_root;
+	struct newfs_dentry *dentry = newfs_lookup(path, &is_find, &is_root);
+	struct newfs_inode *inode;
+
+	if (is_find == FALSE)
+	{
+		return -NFS_ERROR_NOTFOUND;
+	}
+
+	inode = dentry->inode;
+
+	if (NFS_IS_DIR(inode))
+	{
+		return -NFS_ERROR_ISDIR;
+	}
+
+	if (NFS_BLKS_SZ(inode->size) < offset)
+	{
+		return -NFS_ERROR_SEEK;
+	}
+
+	newfs_read_file(inode, buf, size, offset);
+	return size;
 }
 
 /**
@@ -218,59 +372,106 @@ int newfs_rename(const char* from, const char* to) {
 	return 0;
 }
 
+
 /**
  * @brief 打开文件，可以在这里维护fi的信息，例如，fi->fh可以理解为一个64位指针，可以把自己想保存的数据结构
  * 保存在fh中
- * 
+ *
  * @param path 相对于挂载点的路径
  * @param fi 文件信息
- * @return int 0成功，否则返回对应错误号
+ * @return int 0成功，否则失败
  */
-int newfs_open(const char* path, struct fuse_file_info* fi) {
+int newfs_open(const char *path, struct fuse_file_info *fi)
+{
 	/* 选做 */
-	return 0;
+	return NFS_ERROR_NONE;
 }
 
 /**
  * @brief 打开目录文件
- * 
+ *
  * @param path 相对于挂载点的路径
  * @param fi 文件信息
- * @return int 0成功，否则返回对应错误号
+ * @return int 0成功，否则失败
  */
-int newfs_opendir(const char* path, struct fuse_file_info* fi) {
+int newfs_opendir(const char *path, struct fuse_file_info *fi)
+{
 	/* 选做 */
-	return 0;
+	return NFS_ERROR_NONE;
 }
 
 /**
  * @brief 改变文件大小
- * 
+ *
  * @param path 相对于挂载点的路径
  * @param offset 改变后文件大小
- * @return int 0成功，否则返回对应错误号
+ * @return int 0成功，否则失败
  */
-int newfs_truncate(const char* path, off_t offset) {
+int newfs_truncate(const char *path, off_t offset)
+{
 	/* 选做 */
-	return 0;
-}
+	boolean is_find, is_root;
+	struct newfs_dentry *dentry = newfs_lookup(path, &is_find, &is_root);
+	struct newfs_inode *inode;
 
+	if (is_find == FALSE)
+	{
+		return -NFS_ERROR_NOTFOUND;
+	}
+
+	inode = dentry->inode;
+
+	if (NFS_IS_DIR(inode))
+	{
+		return -NFS_ERROR_ISDIR;
+	}
+
+	inode->size = offset;
+
+	return NFS_ERROR_NONE;
+}
 
 /**
  * @brief 访问文件，因为读写文件时需要查看权限
- * 
+ *
  * @param path 相对于挂载点的路径
  * @param type 访问类别
- * R_OK: Test for read permission. 
+ * R_OK: Test for read permission.
  * W_OK: Test for write permission.
  * X_OK: Test for execute permission.
- * F_OK: Test for existence. 
- * 
- * @return int 0成功，否则返回对应错误号
+ * F_OK: Test for existence.
+ *
+ * @return int 0成功，否则失败
  */
-int newfs_access(const char* path, int type) {
+int newfs_access(const char *path, int type)
+{
 	/* 选做: 解析路径，判断是否存在 */
-	return 0;
+	boolean is_find, is_root;
+	boolean is_access_ok = FALSE;
+	struct newfs_dentry *dentry = newfs_lookup(path, &is_find, &is_root);
+	struct newfs_inode *inode;
+
+	switch (type)
+	{
+	case R_OK:
+		is_access_ok = TRUE;
+		break;
+	case F_OK:
+		if (is_find)
+		{
+			is_access_ok = TRUE;
+		}
+		break;
+	case W_OK:
+		is_access_ok = TRUE;
+		break;
+	case X_OK:
+		is_access_ok = TRUE;
+		break;
+	default:
+		break;
+	}
+	return is_access_ok ? NFS_ERROR_NONE : -NFS_ERROR_ACCESS;
 }	
 /******************************************************************************
 * SECTION: FUSE入口

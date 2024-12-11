@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.txt": "plaintext",
         "*.cjson": "jsonc",
         "*.wxss": "css",
         "*.wxs": "javascript",
@@ -11,6 +12,8 @@
         "ddriver_ctl_user.h": "c",
         "errno.h": "c",
         "fuse.h": "c",
-        "ddriver.h": "c"
+        "ddriver.h": "c",
+        "cmath": "c",
+        "type_traits": "c"
     }
 }
